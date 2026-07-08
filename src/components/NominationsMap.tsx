@@ -99,7 +99,6 @@ export function NominationsMap({ nominations, selectedLocation, onLocationSelect
   return (
     <div className="nominations-map-container">
       <div className="map-header">
-        <h3>Nomination Locations</h3>
         <p className="map-summary">
           {clusters.length} location{clusters.length !== 1 ? 's' : ''} •{' '}
           {nominations.length} nomination{nominations.length !== 1 ? 's' : ''}
