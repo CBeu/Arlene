@@ -1,13 +1,8 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import './LoginPage.css'
 
-type EmailStatus = 'idle' | 'sending' | 'sent' | 'error'
-
 export function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [emailStatus, setEmailStatus] = useState<EmailStatus>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
   const signInWithProvider = async (provider: 'google' | 'apple') => {
@@ -19,22 +14,6 @@ export function LoginPage() {
       options: { redirectTo: window.location.origin + import.meta.env.BASE_URL },
     })
     if (error) setErrorMsg(error.message)
-  }
-
-  const signInWithEmail = async (e: FormEvent) => {
-    e.preventDefault()
-    setErrorMsg('')
-    setEmailStatus('sending')
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.origin + import.meta.env.BASE_URL },
-    })
-    if (error) {
-      setEmailStatus('error')
-      setErrorMsg(error.message)
-    } else {
-      setEmailStatus('sent')
-    }
   }
 
   return (
@@ -91,35 +70,6 @@ export function LoginPage() {
             Continue with Google
           </button>
         </div>
-
-        <div className="login-divider" role="separator">or</div>
-
-        {emailStatus === 'sent' ? (
-          <p className="login-sent" role="status">
-            Sign-in link sent to <strong>{email}</strong>. Open it on this
-            device to finish signing in.
-          </p>
-        ) : (
-          <form className="login-email" onSubmit={signInWithEmail}>
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              required
-              autoComplete="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <button
-              type="submit"
-              className="btn btn-email"
-              disabled={emailStatus === 'sending'}
-            >
-              {emailStatus === 'sending' ? 'Sending…' : 'Email me a sign-in link'}
-            </button>
-          </form>
-        )}
 
         {errorMsg && (
           <p className="login-error" role="alert">
