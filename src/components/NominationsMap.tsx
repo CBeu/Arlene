@@ -106,7 +106,9 @@ export function NominationsMap({ nominations, selectedLocation, onLocationSelect
         </p>
       </div>
 
-      <MapContainer center={center} zoom={4} className="map-container">
+      {/* On mobile, one-finger drag scrolls the page instead of panning
+          the map; two-finger pinch still zooms and pans. */}
+      <MapContainer center={center} zoom={4} className="map-container" dragging={!L.Browser.mobile} touchZoom>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
