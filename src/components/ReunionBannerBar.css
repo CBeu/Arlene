@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Dancing+Script:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap');
+
+.reunion-banner-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: none;
+  padding: 24px 5vw;
+}
+
+.reunions-brand {
+  color: var(--paper);
+  font-family: 'Dancing Script', cursive;
+  font-weight: 700;
+  font-size: 1.6rem;
+  line-height: 1;
+  padding: 8px 18px 10px;
+  border-radius: 8px;
+}
+
+.reunions-user-menu {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reunions-user-email {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.reunions-signout {
+  font: 600 0.85rem 'Public Sans', system-ui, sans-serif;
+  color: #fff;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.reunions-signout:hover {
+  filter: brightness(0.96);
+}

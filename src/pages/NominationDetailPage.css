@@ -1,0 +1,66 @@
+.nomination-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+}
+
+.nomination-detail-location {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--water);
+  margin: 0;
+}
+
+.nomination-detail-description {
+  color: var(--trail);
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.nomination-detail-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.nomination-detail-stat {
+  background: #fff;
+  border: 1px solid #dde5e0;
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+
+.nomination-detail-stat dt {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--trail);
+  margin: 0 0 4px;
+}
+
+.nomination-detail-stat dd {
+  font-family: 'Archivo', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.nomination-detail-link {
+  align-self: flex-start;
+  font: 600 0.9rem 'Public Sans', system-ui, sans-serif;
+  padding: 10px 16px;
+  background: var(--field);
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: filter 0.15s ease;
+}
+
+.nomination-detail-link:hover {
+  filter: brightness(1.06);
+}

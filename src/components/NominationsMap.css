@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css');
+
+.nominations-map-container {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.map-header {
+  margin-bottom: 0;
+}
+
+.map-header h3 {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 0 0 4px;
+  color: var(--ink);
+}
+
+.map-summary {
+  font-size: 0.85rem;
+  color: var(--trail);
+  margin: 0;
+}
+
+.map-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: var(--trail);
+  font-size: 0.95rem;
+  background: #f9fafb;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+}
+
+.map-container {
+  height: 350px;
+  border-radius: 12px;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Leaflet overrides */
+.map-container .leaflet-control-attribution {
+  font-size: 0.75rem;
+}
+
+.map-popup {
+  font-family: 'Public Sans', system-ui, sans-serif;
+}
+
+.map-popup h4 {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0 0 4px;
+  color: var(--ink);
+}
+
+.map-popup p {
+  font-size: 0.85rem;
+  margin: 0;
+  color: var(--trail);
+}

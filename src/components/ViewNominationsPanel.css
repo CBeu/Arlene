@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap');
+
+.nominations-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.nominations-error {
+  color: var(--pin);
+  background: rgba(179, 59, 73, 0.1);
+  border: 1px solid var(--pin);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.loading-message,
+.empty-message {
+  text-align: center;
+  color: var(--trail);
+  padding: 32px 16px;
+  font-size: 0.95rem;
+}
+
+.nominations-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.location-filter-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(99, 179, 197, 0.05);
+  border: 1px solid rgba(99, 179, 197, 0.2);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--water);
+}
+
+.clear-filter-btn {
+  font: 600 0.85rem 'Public Sans', system-ui, sans-serif;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--water);
+  border: 1px solid var(--water);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.clear-filter-btn:hover {
+  filter: brightness(0.9);
+}
+
+.nominations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.nomination-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #dde5e0;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.nomination-card:hover {
+  box-shadow: 0 8px 20px rgba(34, 51, 59, 0.1);
+  transform: translateY(-2px);
+}
+
+.nomination-card:focus-visible {
+  outline: 3px solid var(--water);
+  outline-offset: 2px;
+}
+
+.nomination-name {
+  font-family: 'Archivo', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+
+.nomination-location {
+  font-size: 0.85rem;
+  color: var(--trail);
+  margin: 0;
+  line-height: 1.4;
+}

@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap');
+
+.reunion-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reunion-overview h2 {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 1.4rem;
+  margin: 0;
+  color: var(--ink);
+}
+
+.reunion-overview-dates {
+  font-size: 0.9rem;
+  color: var(--trail);
+  margin: 0;
+}
+
+.reunion-overview-description {
+  color: var(--ink);
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
+
+.reunion-members {
+  margin-top: 24px;
+}
+
+.reunion-members h3 {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+
+.reunion-members-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid #dde5e0;
+  border-radius: 8px;
+}
+
+.reunion-members-list li {
+  padding: 10px 14px;
+  font: 500 0.9rem 'Public Sans', system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.reunion-members-list li + li {
+  border-top: 1px solid #eef2ef;
+}
+
+.reunion-members-loading {
+  color: var(--trail);
+  font-size: 0.9rem;
+}
+
+.reunion-members-error {
+  color: var(--pin);
+  background: rgba(179, 59, 73, 0.1);
+  border: 1px solid var(--pin);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.9rem;
+}

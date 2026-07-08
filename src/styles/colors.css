@@ -1,0 +1,9 @@
+/* Shared palette: field-map paper, slate ink, hydrography blue, pin red */
+:root {
+  --paper: #f2f5f3;
+  --ink: #22333b;
+  --water: #c9dce4;
+  --pin: #b33b49;
+  --trail: #7a8b6f;
+  --field: #b33b49;
+}

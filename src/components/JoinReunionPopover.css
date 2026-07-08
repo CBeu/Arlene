@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap');
+
+.join-reunion-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+}
+
+.join-reunion-popover {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--paper);
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 20px 60px rgba(34, 51, 59, 0.2);
+  max-width: 400px;
+  width: 90%;
+  z-index: 1000;
+}
+
+.join-reunion-popover h2 {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 1.4rem;
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+
+.join-reunion-popover > p {
+  color: var(--trail);
+  font-size: 0.9rem;
+  margin: 0 0 24px;
+}
+
+.join-reunion-popover form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.join-reunion-popover input {
+  font: 0.9rem 'Public Sans', system-ui, sans-serif;
+  padding: 10px 12px;
+  border: 1px solid #dde5e0;
+  border-radius: 8px;
+  color: var(--ink);
+  background: #fff;
+}
+
+.join-reunion-popover input:focus {
+  outline: none;
+  border-color: var(--water);
+  box-shadow: 0 0 0 3px rgba(99, 179, 197, 0.1);
+}
+
+.join-reunion-popover input:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.popover-error {
+  color: var(--pin);
+  background: rgba(179, 59, 73, 0.1);
+  border: 1px solid var(--pin);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  margin: -8px 0 0;
+}
+
+.popover-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.popover-cancel,
+.popover-submit {
+  flex: 1;
+  font: 600 0.9rem 'Public Sans', system-ui, sans-serif;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  transition: filter 0.15s ease;
+}
+
+.popover-cancel {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid #dde5e0;
+}
+
+.popover-cancel:hover:not(:disabled) {
+  filter: brightness(0.98);
+}
+
+.popover-submit {
+  background: var(--field);
+  color: #fff;
+}
+
+.popover-submit:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.popover-cancel:disabled,
+.popover-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
