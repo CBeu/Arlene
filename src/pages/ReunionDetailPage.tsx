@@ -78,6 +78,12 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack }: ReunionD
         onSignOut={onSignOut}
         nomination={selectedNomination}
         onBack={() => setSelectedNomination(null)}
+        onDeleted={() => {
+          setNominations((prev) =>
+            prev.filter((n) => n.reunionNominationId !== selectedNomination.reunionNominationId),
+          )
+          setSelectedNomination(null)
+        }}
       />
     )
   }

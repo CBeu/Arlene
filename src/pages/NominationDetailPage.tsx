@@ -4,6 +4,7 @@ import { ReunionBannerBar } from '../components/ReunionBannerBar'
 import type { ReunionNomination } from '../types/ReunionNomination'
 import type { NominationComment } from '../types/NominationComment'
 import { createComment, deleteComment, getNominationComments } from '../lib/nominationCommentService'
+import { deleteNomination } from '../lib/nominationService'
 import './ReunionDetailPage.css'
 import './NominationDetailPage.css'
 
@@ -14,6 +15,7 @@ type NominationDetailPageProps = {
   onSignOut: () => void
   nomination: ReunionNomination
   onBack: () => void
+  onDeleted: () => void
 }
 
 function formatPrice(price: number): string {
@@ -34,8 +36,10 @@ function formatCommentDate(createdAt: string): string {
   })
 }
 
-export function NominationDetailPage({ user, onSignOut, nomination, onBack }: NominationDetailPageProps) {
+export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDeleted }: NominationDetailPageProps) {
   const [activeTab, setActiveTab] = useState<Tab>('details')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [comments, setComments] = useState<NominationComment[]>([])
   const [commentsLoading, setCommentsLoading] = useState(true)
   const [commentsError, setCommentsError] = useState<string | null>(null)
@@ -93,6 +97,21 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack }: No
     }
   }
 
+  const handleDeleteNomination = async () => {
+    if (!nominationId || deleting) return
+    if (!window.confirm('Delete this nomination? Its comments will be deleted too.')) return
+
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      await deleteNomination(nominationId)
+      onDeleted()
+    } catch {
+      setDeleteError('Could not delete the nomination. Please try again.')
+      setDeleting(false)
+    }
+  }
+
   const stats: { label: string; value: string }[] = []
   if (nomination.bedrooms != null) stats.push({ label: 'Bedrooms', value: String(nomination.bedrooms) })
   if (nomination.bathrooms != null) stats.push({ label: 'Bathrooms', value: String(nomination.bathrooms) })
@@ -110,7 +129,19 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack }: No
             ← Back
           </button>
           <h1>{nomination.name}</h1>
+          {nomination.createdByUUID === user.id && (
+            <button
+              type="button"
+              className="nomination-delete-button"
+              onClick={handleDeleteNomination}
+              disabled={deleting}
+            >
+              {deleting ? 'Deleting…' : 'Delete'}
+            </button>
+          )}
         </div>
+
+        {deleteError && <p className="comments-error">{deleteError}</p>}
 
         <div className="reunion-tabs">
           <button

@@ -65,6 +65,29 @@
   filter: brightness(1.06);
 }
 
+.nomination-delete-button {
+  font: 600 0.9rem 'Public Sans', system-ui, sans-serif;
+  padding: 8px 16px;
+  margin-left: auto;
+  background: transparent;
+  color: #b3261e;
+  border: 1px solid #b3261e;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nomination-delete-button:hover:not(:disabled) {
+  background: #b3261e;
+  color: #fff;
+}
+
+.nomination-delete-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .comments-error {
   color: #b3261e;
   background: rgba(179, 38, 30, 0.08);
