@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { ReunionBannerBar } from '../components/ReunionBannerBar'
 import { ReunionOverviewPanel } from '../components/ReunionOverviewPanel'
@@ -6,7 +6,9 @@ import { NominationDetailPage } from './NominationDetailPage'
 import { SubmitNominationForm } from '../components/SubmitNominationForm'
 import { ViewNominationsPanel } from '../components/ViewNominationsPanel'
 import { createNomination, getReunionNominations, type CreateNominationInput } from '../lib/nominationService'
-import { getJoinLink } from '../lib/reunionService'
+import { getJoinLink, updateReunion, deleteReunion } from '../lib/reunionService'
+import type { CreateReunionFormData } from '../components/CreateReunionDialog'
+import { CreateReunionDialog } from '../components/CreateReunionDialog'
 import type { Reunion } from '../types/Reunion'
 import type { ReunionNomination } from '../types/ReunionNomination'
 import './ReunionDetailPage.css'
@@ -18,9 +20,23 @@ type ReunionDetailPageProps = {
   onSignOut: () => void
   reunion: Reunion
   onBack: () => void
+  onUpdated: (updated: Reunion) => void
+  onDeleted: () => void
 }
 
-export function ReunionDetailPage({ user, onSignOut, reunion, onBack }: ReunionDetailPageProps) {
+// datetime-local inputs need "YYYY-MM-DDTHH:mm" in local time
+function toDateTimeLocal(date?: Date): string | undefined {
+  if (!date) return undefined
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+// date inputs need "YYYY-MM-DD" in local time
+function toDateInput(date?: Date): string | undefined {
+  return toDateTimeLocal(date)?.slice(0, 10)
+}
+
+export function ReunionDetailPage({ user, onSignOut, reunion, onBack, onUpdated, onDeleted }: ReunionDetailPageProps) {
   const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [selectedNomination, setSelectedNomination] = useState<ReunionNomination | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -30,6 +46,53 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack }: ReunionD
   const [isLoadingNominations, setIsLoadingNominations] = useState(false)
   const [nominationsError, setNominationsError] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [deletingReunion, setDeletingReunion] = useState(false)
+  const [ownerError, setOwnerError] = useState<string | null>(null)
+
+  const isCreator = reunion.createdByUUID === user.id
+
+  const editInitialValues = useMemo<CreateReunionFormData>(
+    () => ({
+      name: reunion.name,
+      description: reunion.description,
+      reunionStartDate: toDateTimeLocal(reunion.reunionStartDate),
+      reunionEndDate: toDateTimeLocal(reunion.reunionEndDate),
+      nominationDeadline: toDateInput(reunion.nominationDeadline),
+      votingDeadline: toDateInput(reunion.votingDeadline),
+    }),
+    [reunion],
+  )
+
+  const nominationsClosed =
+    reunion.nominationDeadline !== undefined && new Date() >= reunion.nominationDeadline
+
+  const handleUpdateReunion = async (formData: CreateReunionFormData) => {
+    setOwnerError(null)
+    try {
+      const updated = await updateReunion(reunion.reunionId!, formData)
+      setIsEditOpen(false)
+      onUpdated(updated)
+    } catch {
+      setOwnerError('Could not update the reunion. Please try again.')
+      setIsEditOpen(false)
+    }
+  }
+
+  const handleDeleteReunion = async () => {
+    if (deletingReunion) return
+    if (!window.confirm('Delete this reunion? All of its nominations and comments will be deleted too.')) return
+
+    setDeletingReunion(true)
+    setOwnerError(null)
+    try {
+      await deleteReunion(reunion.reunionId!)
+      onDeleted()
+    } catch {
+      setOwnerError('Could not delete the reunion. Please try again.')
+      setDeletingReunion(false)
+    }
+  }
 
   const handleShare = async () => {
     await navigator.clipboard.writeText(getJoinLink(reunion.reunionId!))
@@ -104,10 +167,34 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack }: ReunionD
             ← Back
           </button>
           <h1>{reunion.name}</h1>
-          <button type="button" className="share-button" onClick={handleShare}>
-            {linkCopied ? 'Link copied!' : 'Share'}
-          </button>
+          <div className="owner-actions">
+            {isCreator && (
+              <>
+                <button
+                  type="button"
+                  className="owner-edit-button"
+                  onClick={() => setIsEditOpen(true)}
+                  disabled={deletingReunion}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  className="owner-delete-button"
+                  onClick={handleDeleteReunion}
+                  disabled={deletingReunion}
+                >
+                  {deletingReunion ? 'Deleting…' : 'Delete'}
+                </button>
+              </>
+            )}
+            <button type="button" className="share-button" onClick={handleShare}>
+              {linkCopied ? 'Link copied!' : 'Share'}
+            </button>
+          </div>
         </div>
+
+        {ownerError && <p className="owner-error">{ownerError}</p>}
 
         <div className="reunion-tabs">
           <button
@@ -159,22 +246,47 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack }: ReunionD
           {activeTab === 'submit' && (
             <div className="tab-panel">
               <h2>Submit Nomination</h2>
-              {submitSuccess && <div className="success-message">Nomination submitted successfully!</div>}
-              <SubmitNominationForm
-                onSubmit={handleNominationSubmit}
-                isLoading={isSubmitting}
-                error={submitError}
-              />
+              {nominationsClosed ? (
+                <p>
+                  Nominations closed on {reunion.nominationDeadline!.toLocaleDateString()}. New
+                  submissions are no longer accepted.
+                </p>
+              ) : (
+                <>
+                  {submitSuccess && <div className="success-message">Nomination submitted successfully!</div>}
+                  <SubmitNominationForm
+                    onSubmit={handleNominationSubmit}
+                    isLoading={isSubmitting}
+                    error={submitError}
+                  />
+                </>
+              )}
             </div>
           )}
           {activeTab === 'voting' && (
             <div className="tab-panel">
               <h2>Voting</h2>
-              <p>Voting content will go here</p>
+              {!nominationsClosed && reunion.nominationDeadline ? (
+                <p>
+                  Voting will start on {reunion.nominationDeadline.toLocaleDateString()}, once
+                  nominations close.
+                </p>
+              ) : (
+                <p>Voting content will go here</p>
+              )}
             </div>
           )}
         </div>
       </section>
+
+      <CreateReunionDialog
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        onSubmit={handleUpdateReunion}
+        initialValues={editInitialValues}
+        title="Edit Reunion"
+        submitLabel="Save Changes"
+      />
     </main>
   )
 }

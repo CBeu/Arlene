@@ -6,6 +6,8 @@ export class Reunion {
   createdByUUID: string
   reunionStartDate?: Date
   reunionEndDate?: Date
+  nominationDeadline?: Date
+  votingDeadline?: Date
   members: string[]
   nominations: string[]
 
@@ -18,7 +20,9 @@ export class Reunion {
     description?: string,
     reunionStartDate?: Date,
     reunionEndDate?: Date,
-    reunionId?: string
+    reunionId?: string,
+    nominationDeadline?: Date,
+    votingDeadline?: Date
   ) {
     this.reunionId = reunionId
     this.name = name
@@ -29,5 +33,7 @@ export class Reunion {
     this.description = description
     this.reunionStartDate = reunionStartDate
     this.reunionEndDate = reunionEndDate
+    this.nominationDeadline = nominationDeadline
+    this.votingDeadline = votingDeadline
   }
 }

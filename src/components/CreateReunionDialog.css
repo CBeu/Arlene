@@ -85,6 +85,11 @@
   color: var(--ink);
 }
 
+.form-hint {
+  font-size: 0.78rem;
+  color: var(--trail);
+}
+
 .form-group input,
 .form-group textarea {
   font: 400 0.95rem 'Public Sans', system-ui, sans-serif;

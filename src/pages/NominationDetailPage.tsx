@@ -151,10 +151,10 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDe
           </button>
           <h1>{nomination.name}</h1>
           {nomination.createdByUUID === user.id && (
-            <div className="nomination-owner-actions">
+            <div className="owner-actions">
               <button
                 type="button"
-                className="nomination-edit-button"
+                className="owner-edit-button"
                 onClick={() => {
                   setSaveError(null)
                   setEditing((prev) => !prev)
@@ -166,7 +166,7 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDe
               </button>
               <button
                 type="button"
-                className="nomination-delete-button"
+                className="owner-delete-button"
                 onClick={handleDeleteNomination}
                 disabled={deleting || saving}
               >

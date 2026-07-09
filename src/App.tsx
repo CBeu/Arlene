@@ -64,6 +64,8 @@ export default function App() {
         onSignOut={signOut}
         reunion={selectedReunion}
         onBack={() => setSelectedReunion(null)}
+        onUpdated={setSelectedReunion}
+        onDeleted={() => setSelectedReunion(null)}
       />
     )
   }

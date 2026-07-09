@@ -6,6 +6,33 @@ export type CreateReunionInput = {
   description?: string
   reunionStartDate?: string
   reunionEndDate?: string
+  // "YYYY-MM-DD" from a date input; the deadline is the start of that day
+  nominationDeadline?: string
+  votingDeadline?: string
+}
+
+// Deadlines mark the start of a day: "2026-07-10" means 00:00:00 local
+// time on 7/10, stored as an absolute timestamp
+function dateInputToIso(value?: string): string | null {
+  if (!value) return null
+  const [year, month, day] = value.split('-').map(Number)
+  return new Date(year, month - 1, day).toISOString()
+}
+
+function rowToReunion(row: any, members: string[] = []): Reunion {
+  return new Reunion(
+    row.name,
+    new Date(row.created_at),
+    row.created_by_uuid,
+    members,
+    [], // nominations array not populated here
+    row.description ?? undefined,
+    row.reunion_start_date ? new Date(row.reunion_start_date) : undefined,
+    row.reunion_end_date ? new Date(row.reunion_end_date) : undefined,
+    row.id,
+    row.nomination_deadline ? new Date(row.nomination_deadline) : undefined,
+    row.voting_deadline ? new Date(row.voting_deadline) : undefined,
+  )
 }
 
 // Retrieve all reunions a user is a member of
@@ -38,20 +65,7 @@ export async function getUserReunions(userId: string): Promise<Reunion[]> {
     throw error
   }
 
-  return (data || []).map(
-    (row) =>
-      new Reunion(
-        row.name,
-        new Date(row.created_at),
-        row.created_by_uuid,
-        [], // members array not populated here
-        [], // nominations array not populated here
-        row.description,
-        row.reunion_start_date ? new Date(row.reunion_start_date) : undefined,
-        row.reunion_end_date ? new Date(row.reunion_end_date) : undefined,
-        row.id, // reunionId
-      ),
-  )
+  return (data || []).map((row) => rowToReunion(row))
 }
 
 // Create a new reunion and add the creator as a member
@@ -66,6 +80,8 @@ export async function createReunion(userId: string, input: CreateReunionInput): 
         created_by_uuid: userId,
         reunion_start_date: input.reunionStartDate || null,
         reunion_end_date: input.reunionEndDate || null,
+        nomination_deadline: dateInputToIso(input.nominationDeadline),
+        voting_deadline: dateInputToIso(input.votingDeadline),
       },
     ])
     .select()
@@ -89,17 +105,45 @@ export async function createReunion(userId: string, input: CreateReunionInput): 
     throw memberError
   }
 
-  return new Reunion(
-    reunionData.name,
-    new Date(reunionData.created_at),
-    reunionData.created_by_uuid,
-    [userId], // members
-    [], // nominations
-    reunionData.description ?? undefined,
-    reunionData.reunion_start_date ? new Date(reunionData.reunion_start_date) : undefined,
-    reunionData.reunion_end_date ? new Date(reunionData.reunion_end_date) : undefined,
-    reunionData.id, // reunionId
-  )
+  return rowToReunion(reunionData, [userId])
+}
+
+// Update a reunion (RLS only allows the creator)
+export async function updateReunion(reunionId: string, input: CreateReunionInput): Promise<Reunion> {
+  const { data, error } = await supabase
+    .from('reunions')
+    .update({
+      name: input.name,
+      description: input.description || null,
+      reunion_start_date: input.reunionStartDate || null,
+      reunion_end_date: input.reunionEndDate || null,
+      nomination_deadline: dateInputToIso(input.nominationDeadline),
+      voting_deadline: dateInputToIso(input.votingDeadline),
+    })
+    .eq('id', reunionId)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating reunion:', error)
+    throw error
+  }
+
+  return rowToReunion(data)
+}
+
+// Delete a reunion (RLS only allows the creator); nominations, comments,
+// and memberships cascade with it
+export async function deleteReunion(reunionId: string): Promise<void> {
+  const { error } = await supabase
+    .from('reunions')
+    .delete()
+    .eq('id', reunionId)
+
+  if (error) {
+    console.error('Error deleting reunion:', error)
+    throw error
+  }
 }
 
 // Check if user is already a member of a reunion
@@ -164,17 +208,7 @@ export async function getReunionById(reunionId: string): Promise<Reunion> {
     throw new Error('Reunion not found')
   }
 
-  return new Reunion(
-    data.name,
-    new Date(data.created_at),
-    data.created_by_uuid,
-    [], // members array not populated here
-    [], // nominations array not populated here
-    data.description ?? undefined,
-    data.reunion_start_date ? new Date(data.reunion_start_date) : undefined,
-    data.reunion_end_date ? new Date(data.reunion_end_date) : undefined,
-    data.id,
-  )
+  return rowToReunion(data)
 }
 
 export type ReunionMember = {

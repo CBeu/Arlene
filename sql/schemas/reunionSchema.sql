@@ -10,7 +10,11 @@ create table public.reunions (
   created_at timestamptz not null default now(),
   created_by_uuid uuid not null references public.profiles(id) on delete cascade,
   reunion_start_date timestamptz,
-  reunion_end_date timestamptz
+  reunion_end_date timestamptz,
+  -- Deadlines mark the start of the day they fall on, stored at the
+  -- creator's local midnight (added in migration 006)
+  nomination_deadline timestamptz,
+  voting_deadline timestamptz
 );
 
 -- Row level security: signed-in users can see all reunions;
@@ -23,8 +27,12 @@ create policy "reunions_read" on public.reunions
 create policy "reunions_insert" on public.reunions
   for insert to authenticated with check (auth.uid() = created_by_uuid);
 
+-- WITH CHECK validates the new values too, so an update can't reassign
+-- created_by_uuid (migration 005)
 create policy "reunions_update_own" on public.reunions
-  for update to authenticated using (auth.uid() = created_by_uuid);
+  for update to authenticated
+  using (auth.uid() = created_by_uuid)
+  with check (auth.uid() = created_by_uuid);
 
 create policy "reunions_delete_own" on public.reunions
   for delete to authenticated using (auth.uid() = created_by_uuid);
