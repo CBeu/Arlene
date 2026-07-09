@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient'
 import { ReunionNomination } from '../types/ReunionNomination'
+import { geocodeCity } from './geocodingService'
 
 export type CreateNominationInput = {
   name: string
@@ -12,6 +13,25 @@ export type CreateNominationInput = {
   capacity?: number
   units?: number
   price?: number
+}
+
+function rowToNomination(row: any): ReunionNomination {
+  return new ReunionNomination(
+    row.name,
+    row.description,
+    row.city,
+    row.state,
+    row.url,
+    row.created_by_uuid,
+    row.bedrooms,
+    row.bathrooms,
+    row.capacity,
+    row.units,
+    row.price,
+    row.id,
+    row.lat ?? undefined,
+    row.lng ?? undefined,
+  )
 }
 
 // Retrieve all nominations for a specific reunion
@@ -27,23 +47,7 @@ export async function getReunionNominations(reunionId: string): Promise<ReunionN
     throw error
   }
 
-  return (data || []).map(
-    (row) =>
-      new ReunionNomination(
-        row.name,
-        row.description,
-        row.city,
-        row.state,
-        row.url,
-        row.created_by_uuid,
-        row.bedrooms,
-        row.bathrooms,
-        row.capacity,
-        row.units,
-        row.price,
-        row.id,
-      ),
-  )
+  return (data || []).map(rowToNomination)
 }
 
 // Create a new nomination
@@ -52,6 +56,10 @@ export async function createNomination(
   reunionId: string,
   input: CreateNominationInput,
 ): Promise<ReunionNomination> {
+  // Best-effort: a failed lookup stores null coordinates rather than
+  // blocking the save; the map geocodes missing rows lazily.
+  const coords = await geocodeCity(input.city, input.state)
+
   const { data, error } = await supabase
     .from('reunion_nominations')
     .insert([
@@ -68,6 +76,8 @@ export async function createNomination(
         capacity: input.capacity || null,
         units: input.units || null,
         price: input.price || null,
+        lat: coords?.lat ?? null,
+        lng: coords?.lng ?? null,
       },
     ])
     .select()
@@ -78,20 +88,7 @@ export async function createNomination(
     throw error
   }
 
-  return new ReunionNomination(
-    data.name,
-    data.description,
-    data.city,
-    data.state,
-    data.url,
-    data.created_by_uuid,
-    data.bedrooms,
-    data.bathrooms,
-    data.capacity,
-    data.units,
-    data.price,
-    data.id,
-  )
+  return rowToNomination(data)
 }
 
 // Delete a nomination
@@ -112,9 +109,18 @@ export async function updateNomination(
   nominationId: string,
   input: Partial<CreateNominationInput>,
 ): Promise<ReunionNomination> {
+  const updates: Record<string, unknown> = { ...input }
+
+  // Re-geocode when the location changes
+  if (input.city !== undefined && input.state !== undefined) {
+    const coords = await geocodeCity(input.city, input.state)
+    updates.lat = coords?.lat ?? null
+    updates.lng = coords?.lng ?? null
+  }
+
   const { data, error } = await supabase
     .from('reunion_nominations')
-    .update(input)
+    .update(updates)
     .eq('id', nominationId)
     .select()
     .single()
@@ -124,18 +130,5 @@ export async function updateNomination(
     throw error
   }
 
-  return new ReunionNomination(
-    data.name,
-    data.description,
-    data.city,
-    data.state,
-    data.url,
-    data.created_by_uuid,
-    data.bedrooms,
-    data.bathrooms,
-    data.capacity,
-    data.units,
-    data.price,
-    data.id,
-  )
+  return rowToNomination(data)
 }

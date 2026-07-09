@@ -1,6 +1,8 @@
+import { useEffect, useMemo, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import type { ReunionNomination } from '../types/ReunionNomination'
+import { geocodeCity, type Coordinates } from '../lib/geocodingService'
 import './NominationsMap.css'
 
 // Fix default marker icons
@@ -11,13 +13,14 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 })
 
+const US_CENTER: [number, number] = [39.8283, -98.5795]
+
 type LocationCluster = {
   city: string
   state: string
   count: number
   nominations: ReunionNomination[]
-  lat: number
-  lng: number
+  coords: Coordinates | null
 }
 
 type NominationsMapProps = {
@@ -26,57 +29,54 @@ type NominationsMapProps = {
   onLocationSelect?: (location: string) => void
 }
 
-// Simple geocoding mock - in production, use a real geocoding API
-const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
-  'New York,NY': { lat: 40.7128, lng: -74.006 },
-  'Los Angeles,CA': { lat: 34.0522, lng: -118.2437 },
-  'Chicago,IL': { lat: 41.8781, lng: -87.6298 },
-  'Houston,TX': { lat: 29.7604, lng: -95.3698 },
-  'Phoenix,AZ': { lat: 33.4484, lng: -112.074 },
-  'Miami,FL': { lat: 25.7617, lng: -80.1918 },
-  'Denver,CO': { lat: 39.7392, lng: -104.9903 },
-  'Seattle,WA': { lat: 47.6062, lng: -122.3321 },
-  'Boston,MA': { lat: 42.3601, lng: -71.0589 },
-  'Atlanta,GA': { lat: 33.749, lng: -84.388 },
-  'Dallas,TX': { lat: 32.7767, lng: -96.797 },
-  'San Francisco,CA': { lat: 37.7749, lng: -122.4194 },
-  'Portland,OR': { lat: 45.5152, lng: -122.6784 },
-  'Austin,TX': { lat: 30.2672, lng: -97.7431 },
-  'Nashville,TN': { lat: 36.1627, lng: -86.7816 },
-}
-
-function getCoordinates(city: string, state: string): { lat: number; lng: number } {
-  const key = `${city},${state}`
-  if (CITY_COORDINATES[key]) {
-    return CITY_COORDINATES[key]
-  }
-  // Default to center of US if not found
-  return { lat: 39.8283, lng: -98.5795 }
-}
-
 export function NominationsMap({ nominations, selectedLocation, onLocationSelect }: NominationsMapProps) {
-  // Group nominations by location
-  const locationMap = new Map<string, LocationCluster>()
+  // Coordinates resolved client-side for nominations saved before
+  // coordinates were stored at write time, keyed by "City, ST".
+  const [geocoded, setGeocoded] = useState<Record<string, Coordinates>>({})
 
-  nominations.forEach((nomination) => {
-    const key = `${nomination.city}, ${nomination.state}`
-    if (!locationMap.has(key)) {
-      const coords = getCoordinates(nomination.city, nomination.state)
-      locationMap.set(key, {
-        city: nomination.city,
-        state: nomination.state,
-        count: 0,
-        nominations: [],
-        lat: coords.lat,
-        lng: coords.lng,
+  const clusters = useMemo(() => {
+    const locationMap = new Map<string, LocationCluster>()
+
+    nominations.forEach((nomination) => {
+      const key = `${nomination.city}, ${nomination.state}`
+      if (!locationMap.has(key)) {
+        const stored =
+          nomination.lat !== undefined && nomination.lng !== undefined
+            ? { lat: nomination.lat, lng: nomination.lng }
+            : null
+        locationMap.set(key, {
+          city: nomination.city,
+          state: nomination.state,
+          count: 0,
+          nominations: [],
+          coords: stored ?? geocoded[key] ?? null,
+        })
+      }
+      const cluster = locationMap.get(key)!
+      cluster.count++
+      cluster.nominations.push(nomination)
+    })
+
+    return Array.from(locationMap.values())
+  }, [nominations, geocoded])
+
+  // Look up any clusters still missing coordinates
+  useEffect(() => {
+    let cancelled = false
+
+    clusters
+      .filter((cluster) => cluster.coords === null)
+      .forEach(async (cluster) => {
+        const coords = await geocodeCity(cluster.city, cluster.state)
+        if (coords && !cancelled) {
+          setGeocoded((prev) => ({ ...prev, [`${cluster.city}, ${cluster.state}`]: coords }))
+        }
       })
-    }
-    const cluster = locationMap.get(key)!
-    cluster.count++
-    cluster.nominations.push(nomination)
-  })
 
-  const clusters = Array.from(locationMap.values())
+    return () => {
+      cancelled = true
+    }
+  }, [clusters])
 
   if (clusters.length === 0) {
     return (
@@ -88,13 +88,18 @@ export function NominationsMap({ nominations, selectedLocation, onLocationSelect
     )
   }
 
+  const located = clusters.filter(
+    (cluster): cluster is LocationCluster & { coords: Coordinates } => cluster.coords !== null,
+  )
+
   // Calculate map bounds
-  const lats = clusters.map((c) => c.lat)
-  const lngs = clusters.map((c) => c.lng)
-  const center: [number, number] = [
-    (Math.max(...lats) + Math.min(...lats)) / 2,
-    (Math.max(...lngs) + Math.min(...lngs)) / 2,
-  ]
+  const center: [number, number] =
+    located.length > 0
+      ? [
+          (Math.max(...located.map((c) => c.coords.lat)) + Math.min(...located.map((c) => c.coords.lat))) / 2,
+          (Math.max(...located.map((c) => c.coords.lng)) + Math.min(...located.map((c) => c.coords.lng))) / 2,
+        ]
+      : US_CENTER
 
   return (
     <div className="nominations-map-container">
@@ -112,14 +117,14 @@ export function NominationsMap({ nominations, selectedLocation, onLocationSelect
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {clusters.map((cluster) => {
+        {located.map((cluster) => {
           const locationKey = `${cluster.city}, ${cluster.state}`
           const isSelected = selectedLocation === locationKey
 
           return (
             <Marker
               key={locationKey}
-              position={[cluster.lat, cluster.lng]}
+              position={[cluster.coords.lat, cluster.coords.lng]}
               eventHandlers={{
                 click: () => onLocationSelect?.(locationKey),
               }}

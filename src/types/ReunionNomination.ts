@@ -11,6 +11,8 @@ export class ReunionNomination {
   capacity?: number
   units?: number
   price?: number
+  lat?: number
+  lng?: number
 
   constructor(
     name: string,
@@ -24,7 +26,9 @@ export class ReunionNomination {
     capacity?: number,
     units?: number,
     price?: number,
-    reunionNominationId?: string
+    reunionNominationId?: string,
+    lat?: number,
+    lng?: number
   ) {
     this.reunionNominationId = reunionNominationId
     this.name = name
@@ -38,5 +42,7 @@ export class ReunionNomination {
     this.capacity = capacity
     this.units = units
     this.price = price
+    this.lat = lat
+    this.lng = lng
   }
 }
