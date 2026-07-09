@@ -11,20 +11,33 @@ const US_STATES = [
   'DC'
 ]
 
+const EMPTY_FORM: CreateNominationInput = {
+  name: '',
+  description: '',
+  city: '',
+  state: '',
+  url: '',
+}
+
 type SubmitNominationFormProps = {
   onSubmit: (data: CreateNominationInput) => Promise<void>
   isLoading?: boolean
   error?: string | null
+  // Prefill for editing an existing nomination
+  initialValues?: CreateNominationInput
+  submitLabel?: string
+  loadingLabel?: string
 }
 
-export function SubmitNominationForm({ onSubmit, isLoading = false, error: externalError }: SubmitNominationFormProps) {
-  const [formData, setFormData] = useState<CreateNominationInput>({
-    name: '',
-    description: '',
-    city: '',
-    state: '',
-    url: '',
-  })
+export function SubmitNominationForm({
+  onSubmit,
+  isLoading = false,
+  error: externalError,
+  initialValues,
+  submitLabel = 'Submit Nomination',
+  loadingLabel = 'Submitting...',
+}: SubmitNominationFormProps) {
+  const [formData, setFormData] = useState<CreateNominationInput>(initialValues ?? EMPTY_FORM)
   const [error, setError] = useState<string | null>(externalError || null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -56,13 +69,9 @@ export function SubmitNominationForm({ onSubmit, isLoading = false, error: exter
 
     try {
       await onSubmit(formData)
-      setFormData({
-        name: '',
-        description: '',
-        city: '',
-        state: '',
-        url: '',
-      })
+      if (!initialValues) {
+        setFormData(EMPTY_FORM)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit nomination')
     }
@@ -226,7 +235,7 @@ export function SubmitNominationForm({ onSubmit, isLoading = false, error: exter
       {error && <div className="form-error">{error}</div>}
 
       <button type="submit" className="form-submit-button" disabled={isLoading}>
-        {isLoading ? 'Submitting...' : 'Submit Nomination'}
+        {isLoading ? loadingLabel : submitLabel}
       </button>
     </form>
   )

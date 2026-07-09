@@ -4,7 +4,8 @@ import { ReunionBannerBar } from '../components/ReunionBannerBar'
 import type { ReunionNomination } from '../types/ReunionNomination'
 import type { NominationComment } from '../types/NominationComment'
 import { createComment, deleteComment, getNominationComments } from '../lib/nominationCommentService'
-import { deleteNomination } from '../lib/nominationService'
+import { deleteNomination, updateNomination, type CreateNominationInput } from '../lib/nominationService'
+import { SubmitNominationForm } from '../components/SubmitNominationForm'
 import './ReunionDetailPage.css'
 import './NominationDetailPage.css'
 
@@ -16,6 +17,7 @@ type NominationDetailPageProps = {
   nomination: ReunionNomination
   onBack: () => void
   onDeleted: () => void
+  onUpdated: (updated: ReunionNomination) => void
 }
 
 function formatPrice(price: number): string {
@@ -36,10 +38,13 @@ function formatCommentDate(createdAt: string): string {
   })
 }
 
-export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDeleted }: NominationDetailPageProps) {
+export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDeleted, onUpdated }: NominationDetailPageProps) {
   const [activeTab, setActiveTab] = useState<Tab>('details')
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [comments, setComments] = useState<NominationComment[]>([])
   const [commentsLoading, setCommentsLoading] = useState(true)
   const [commentsError, setCommentsError] = useState<string | null>(null)
@@ -112,6 +117,22 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDe
     }
   }
 
+  const handleUpdateNomination = async (formData: CreateNominationInput) => {
+    if (!nominationId) return
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const updated = await updateNomination(nominationId, formData)
+      setEditing(false)
+      onUpdated(updated)
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to update nomination')
+      throw err
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const stats: { label: string; value: string }[] = []
   if (nomination.bedrooms != null) stats.push({ label: 'Bedrooms', value: String(nomination.bedrooms) })
   if (nomination.bathrooms != null) stats.push({ label: 'Bathrooms', value: String(nomination.bathrooms) })
@@ -130,14 +151,28 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDe
           </button>
           <h1>{nomination.name}</h1>
           {nomination.createdByUUID === user.id && (
-            <button
-              type="button"
-              className="nomination-delete-button"
-              onClick={handleDeleteNomination}
-              disabled={deleting}
-            >
-              {deleting ? 'Deleting…' : 'Delete'}
-            </button>
+            <div className="nomination-owner-actions">
+              <button
+                type="button"
+                className="nomination-edit-button"
+                onClick={() => {
+                  setSaveError(null)
+                  setEditing((prev) => !prev)
+                  setActiveTab('details')
+                }}
+                disabled={deleting || saving}
+              >
+                {editing ? 'Cancel Edit' : 'Edit'}
+              </button>
+              <button
+                type="button"
+                className="nomination-delete-button"
+                onClick={handleDeleteNomination}
+                disabled={deleting || saving}
+              >
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
           )}
         </div>
 
@@ -161,7 +196,31 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDe
         </div>
 
         <div className="tab-content">
-          {activeTab === 'details' && (
+          {activeTab === 'details' && editing && (
+            <div className="tab-panel">
+              <h2>Edit Nomination</h2>
+              <SubmitNominationForm
+                onSubmit={handleUpdateNomination}
+                isLoading={saving}
+                error={saveError}
+                submitLabel="Save Changes"
+                loadingLabel="Saving..."
+                initialValues={{
+                  name: nomination.name,
+                  description: nomination.description,
+                  city: nomination.city,
+                  state: nomination.state,
+                  url: nomination.url,
+                  bedrooms: nomination.bedrooms,
+                  bathrooms: nomination.bathrooms,
+                  capacity: nomination.capacity,
+                  units: nomination.units,
+                  price: nomination.price,
+                }}
+              />
+            </div>
+          )}
+          {activeTab === 'details' && !editing && (
             <div className="tab-panel">
               <div className="nomination-detail">
                 <p className="nomination-detail-location">

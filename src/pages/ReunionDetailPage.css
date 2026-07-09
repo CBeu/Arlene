@@ -99,8 +99,8 @@
 }
 
 .tab-button.active {
-  color: var(--water);
-  border-bottom-color: var(--water);
+  color: var(--field);
+  border-bottom-color: var(--field);
 }
 
 .tab-content {

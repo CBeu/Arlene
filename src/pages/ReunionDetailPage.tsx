@@ -84,6 +84,12 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack }: ReunionD
           )
           setSelectedNomination(null)
         }}
+        onUpdated={(updated) => {
+          setNominations((prev) =>
+            prev.map((n) => (n.reunionNominationId === updated.reunionNominationId ? updated : n)),
+          )
+          setSelectedNomination(updated)
+        }}
       />
     )
   }

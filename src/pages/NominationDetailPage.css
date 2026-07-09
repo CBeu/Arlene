@@ -65,10 +65,36 @@
   filter: brightness(1.06);
 }
 
+.nomination-owner-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+}
+
+.nomination-edit-button {
+  font: 600 0.9rem 'Public Sans', system-ui, sans-serif;
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--field);
+  border: 1px solid #dde5e0;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: filter 0.15s ease;
+}
+
+.nomination-edit-button:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+.nomination-edit-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .nomination-delete-button {
   font: 600 0.9rem 'Public Sans', system-ui, sans-serif;
   padding: 8px 16px;
-  margin-left: auto;
   background: transparent;
   color: #b3261e;
   border: 1px solid #b3261e;
