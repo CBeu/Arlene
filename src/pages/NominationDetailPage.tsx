@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { ReunionBannerBar } from '../components/ReunionBannerBar'
 import type { ReunionNomination } from '../types/ReunionNomination'
@@ -36,6 +36,43 @@ function formatCommentDate(createdAt: string): string {
     hour: 'numeric',
     minute: '2-digit',
   })
+}
+
+function ExpandableDescription({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const [overflows, setOverflows] = useState(false)
+  const textRef = useRef<HTMLParagraphElement>(null)
+
+  // Only offer the toggle when the clamped text actually overflows
+  useEffect(() => {
+    const el = textRef.current
+    if (!el) return
+    const check = () => setOverflows(el.scrollHeight > el.clientHeight + 1)
+    check()
+    const observer = new ResizeObserver(check)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [text])
+
+  return (
+    <div>
+      <p
+        ref={textRef}
+        className={`nomination-detail-description ${expanded ? '' : 'description-clamped'}`}
+      >
+        {text}
+      </p>
+      {(overflows || expanded) && (
+        <button
+          type="button"
+          className="description-toggle"
+          onClick={() => setExpanded((prev) => !prev)}
+        >
+          {expanded ? 'Show less' : 'Show more'}
+        </button>
+      )}
+    </div>
+  )
 }
 
 export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDeleted, onUpdated }: NominationDetailPageProps) {
@@ -227,7 +264,7 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDe
                   {nomination.city}, {nomination.state}
                 </p>
                 {nomination.description && (
-                  <p className="nomination-detail-description">{nomination.description}</p>
+                  <ExpandableDescription text={nomination.description} />
                 )}
                 {stats.length > 0 && (
                   <dl className="nomination-detail-stats">
