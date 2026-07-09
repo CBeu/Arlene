@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { getReunionMembers, type ReunionMember } from '../lib/reunionService'
+import { useQuery } from '@tanstack/react-query'
+import { getReunionMembers } from '../lib/reunionService'
 import type { Reunion } from '../types/Reunion'
 import './ReunionOverviewPanel.css'
 
@@ -18,26 +18,19 @@ function formatDates(reunion: Reunion): string {
 }
 
 export function ReunionOverviewPanel({ reunion }: ReunionOverviewPanelProps) {
-  const [members, setMembers] = useState<ReunionMember[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const data = await getReunionMembers(reunion.reunionId!)
-        setMembers(data)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch members')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchMembers()
-  }, [reunion.reunionId])
+  const {
+    data: members = [],
+    isLoading,
+    error: fetchError,
+  } = useQuery({
+    queryKey: ['members', reunion.reunionId],
+    queryFn: () => getReunionMembers(reunion.reunionId!),
+  })
+  const error = fetchError
+    ? fetchError instanceof Error
+      ? fetchError.message
+      : 'Failed to fetch members'
+    : null
 
   return (
     <div className="reunion-overview">

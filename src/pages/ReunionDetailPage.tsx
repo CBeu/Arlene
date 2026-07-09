@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { User } from '@supabase/supabase-js'
 import { ReunionBannerBar } from '../components/ReunionBannerBar'
 import { ReunionOverviewPanel } from '../components/ReunionOverviewPanel'
@@ -42,10 +43,24 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack, onUpdated,
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
-  const [nominations, setNominations] = useState<ReunionNomination[]>([])
-  const [isLoadingNominations, setIsLoadingNominations] = useState(false)
-  const [nominationsError, setNominationsError] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
+  const queryClient = useQueryClient()
+
+  const {
+    data: nominations = [],
+    isLoading: isLoadingNominations,
+    error: nominationsFetchError,
+  } = useQuery({
+    queryKey: ['nominations', reunion.reunionId],
+    queryFn: () => getReunionNominations(reunion.reunionId!),
+    // Only fetch once the tab is first opened; afterwards it's cached
+    enabled: activeTab === 'nominations',
+  })
+  const nominationsError = nominationsFetchError
+    ? nominationsFetchError instanceof Error
+      ? nominationsFetchError.message
+      : 'Failed to fetch nominations'
+    : null
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [deletingReunion, setDeletingReunion] = useState(false)
   const [ownerError, setOwnerError] = useState<string | null>(null)
@@ -71,6 +86,7 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack, onUpdated,
     setOwnerError(null)
     try {
       const updated = await updateReunion(reunion.reunionId!, formData)
+      queryClient.invalidateQueries({ queryKey: ['reunions'] })
       setIsEditOpen(false)
       onUpdated(updated)
     } catch {
@@ -87,6 +103,7 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack, onUpdated,
     setOwnerError(null)
     try {
       await deleteReunion(reunion.reunionId!)
+      queryClient.invalidateQueries({ queryKey: ['reunions'] })
       onDeleted()
     } catch {
       setOwnerError('Could not delete the reunion. Please try again.')
@@ -100,30 +117,12 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack, onUpdated,
     setTimeout(() => setLinkCopied(false), 2500)
   }
 
-  useEffect(() => {
-    if (activeTab === 'nominations') {
-      const fetchNominations = async () => {
-        try {
-          setIsLoadingNominations(true)
-          setNominationsError(null)
-          const data = await getReunionNominations(reunion.reunionId!)
-          setNominations(data)
-        } catch (err) {
-          setNominationsError(err instanceof Error ? err.message : 'Failed to fetch nominations')
-        } finally {
-          setIsLoadingNominations(false)
-        }
-      }
-
-      fetchNominations()
-    }
-  }, [activeTab, reunion.reunionId])
-
   const handleNominationSubmit = async (formData: CreateNominationInput) => {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
       await createNomination(user.id, reunion.reunionId!, formData)
+      queryClient.invalidateQueries({ queryKey: ['nominations', reunion.reunionId] })
       setSubmitSuccess(true)
       setTimeout(() => setSubmitSuccess(false), 3000)
     } catch (err) {
@@ -142,15 +141,11 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack, onUpdated,
         nomination={selectedNomination}
         onBack={() => setSelectedNomination(null)}
         onDeleted={() => {
-          setNominations((prev) =>
-            prev.filter((n) => n.reunionNominationId !== selectedNomination.reunionNominationId),
-          )
+          queryClient.invalidateQueries({ queryKey: ['nominations', reunion.reunionId] })
           setSelectedNomination(null)
         }}
         onUpdated={(updated) => {
-          setNominations((prev) =>
-            prev.map((n) => (n.reunionNominationId === updated.reunionNominationId ? updated : n)),
-          )
+          queryClient.invalidateQueries({ queryKey: ['nominations', reunion.reunionId] })
           setSelectedNomination(updated)
         }}
       />

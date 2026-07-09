@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from './hooks/useAuth'
 import { LoginPage } from './pages/LoginPage'
 import { ReunionsPage } from './pages/ReunionsPage'
@@ -18,6 +19,7 @@ export default function App() {
   const [selectedReunion, setSelectedReunion] = useState<Reunion | null>(null)
   const [isJoining, setIsJoining] = useState(false)
   const [joinError, setJoinError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   // Stash the join id right away so it isn't lost if the user has to log in first
   useEffect(() => {
@@ -38,6 +40,7 @@ export default function App() {
     setIsJoining(true)
     joinReunion(user.id, joinId)
       .then((reunion) => {
+        queryClient.invalidateQueries({ queryKey: ['reunions', user.id] })
         if (!cancelled) setSelectedReunion(reunion)
       })
       .catch((err) => {
@@ -50,7 +53,7 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [user])
+  }, [user, queryClient])
 
   // Avoid flashing the login page while the session loads
   if (loading || isJoining) return null

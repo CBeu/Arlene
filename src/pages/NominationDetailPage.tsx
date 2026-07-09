@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { User } from '@supabase/supabase-js'
 import { ReunionBannerBar } from '../components/ReunionBannerBar'
 import type { ReunionNomination } from '../types/ReunionNomination'
@@ -82,34 +83,19 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDe
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
-  const [comments, setComments] = useState<NominationComment[]>([])
-  const [commentsLoading, setCommentsLoading] = useState(true)
   const [commentsError, setCommentsError] = useState<string | null>(null)
   const [newComment, setNewComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const queryClient = useQueryClient()
 
   const nominationId = nomination.reunionNominationId
 
-  useEffect(() => {
-    if (!nominationId) {
-      setCommentsLoading(false)
-      return
-    }
-    let cancelled = false
-    getNominationComments(nominationId)
-      .then((loaded) => {
-        if (!cancelled) setComments(loaded)
-      })
-      .catch(() => {
-        if (!cancelled) setCommentsError('Could not load comments.')
-      })
-      .finally(() => {
-        if (!cancelled) setCommentsLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [nominationId])
+  const { data: comments = [], isLoading: commentsLoading, error: commentsFetchError } = useQuery({
+    queryKey: ['comments', nominationId],
+    queryFn: () => getNominationComments(nominationId!),
+    enabled: !!nominationId,
+  })
+  const displayedCommentsError = commentsError ?? (commentsFetchError ? 'Could not load comments.' : null)
 
   const handleSubmitComment = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -120,7 +106,10 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDe
     setCommentsError(null)
     try {
       const created = await createComment(user.id, nominationId, trimmed)
-      setComments((prev) => [...prev, created])
+      queryClient.setQueryData<NominationComment[]>(['comments', nominationId], (prev) => [
+        ...(prev ?? []),
+        created,
+      ])
       setNewComment('')
     } catch {
       setCommentsError('Could not post your comment. Please try again.')
@@ -133,7 +122,9 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDe
     setCommentsError(null)
     try {
       await deleteComment(commentId)
-      setComments((prev) => prev.filter((c) => c.nominationCommentId !== commentId))
+      queryClient.setQueryData<NominationComment[]>(['comments', nominationId], (prev) =>
+        (prev ?? []).filter((c) => c.nominationCommentId !== commentId),
+      )
     } catch {
       setCommentsError('Could not delete the comment. Please try again.')
     }
@@ -293,7 +284,7 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDe
             <div className="tab-panel">
               <h2>Comments</h2>
 
-              {commentsError && <p className="comments-error">{commentsError}</p>}
+              {displayedCommentsError && <p className="comments-error">{displayedCommentsError}</p>}
 
               {commentsLoading ? (
                 <p>Loading comments…</p>

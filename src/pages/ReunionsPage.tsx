@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { User } from '@supabase/supabase-js'
 import { ReunionBannerBar } from '../components/ReunionBannerBar'
 import { CreateReunionDialog, type CreateReunionFormData } from '../components/CreateReunionDialog'
@@ -18,46 +19,39 @@ type ReunionsPageProps = {
 export function ReunionsPage({ user, onSignOut, onSelectReunion, joinError, onDismissJoinError }: ReunionsPageProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isJoinPopoverOpen, setIsJoinPopoverOpen] = useState(false)
-  const [reunions, setReunions] = useState<Reunion[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [mutationError, setMutationError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    const fetchReunions = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const data = await getUserReunions(user.id)
-        setReunions(data)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch reunions')
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  const {
+    data: reunions = [],
+    isLoading,
+    error: fetchError,
+  } = useQuery({
+    queryKey: ['reunions', user.id],
+    queryFn: () => getUserReunions(user.id),
+  })
 
-    fetchReunions()
-  }, [user.id])
+  const error =
+    mutationError ?? (fetchError instanceof Error ? fetchError.message : fetchError ? 'Failed to fetch reunions' : null)
 
   const handleCreateReunion = async (formData: CreateReunionFormData) => {
     try {
-      setError(null)
-      const newReunion = await createReunion(user.id, formData)
-      setReunions((prev) => [...prev, newReunion])
+      setMutationError(null)
+      await createReunion(user.id, formData)
+      await queryClient.invalidateQueries({ queryKey: ['reunions', user.id] })
       setIsDialogOpen(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create reunion')
+      setMutationError(err instanceof Error ? err.message : 'Failed to create reunion')
     }
   }
 
   const handleJoinReunion = async (reunionId: string) => {
     try {
-      setError(null)
+      setMutationError(null)
       await addUserToReunion(user.id, reunionId)
-      const data = await getUserReunions(user.id)
-      setReunions(data)
+      await queryClient.invalidateQueries({ queryKey: ['reunions', user.id] })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to join reunion')
+      setMutationError(err instanceof Error ? err.message : 'Failed to join reunion')
       throw err
     }
   }
