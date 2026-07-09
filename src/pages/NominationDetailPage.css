@@ -64,3 +64,115 @@
 .nomination-detail-link:hover {
   filter: brightness(1.06);
 }
+
+.comments-error {
+  color: #b3261e;
+  background: rgba(179, 38, 30, 0.08);
+  border: 1px solid #b3261e;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.comment-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  max-width: 640px;
+}
+
+.comment-item {
+  background: #fff;
+  border: 1px solid #dde5e0;
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+
+.comment-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.comment-author {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.comment-date {
+  font-size: 0.78rem;
+  color: var(--trail);
+}
+
+.comment-delete {
+  margin-left: auto;
+  font: 500 0.78rem 'Public Sans', system-ui, sans-serif;
+  background: transparent;
+  color: #b3261e;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.comment-delete:hover {
+  text-decoration: underline;
+}
+
+.comment-body {
+  margin: 0;
+  color: var(--water);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 20px;
+  max-width: 640px;
+}
+
+.comment-input {
+  width: 100%;
+  font: 400 0.9rem 'Public Sans', system-ui, sans-serif;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid #dde5e0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  resize: vertical;
+}
+
+.comment-input:focus {
+  outline: 2px solid var(--water);
+  outline-offset: -1px;
+}
+
+.comment-submit {
+  font: 600 0.9rem 'Public Sans', system-ui, sans-serif;
+  padding: 10px 16px;
+  background: var(--field);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.comment-submit:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.comment-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

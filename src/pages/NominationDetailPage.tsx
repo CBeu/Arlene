@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { ReunionBannerBar } from '../components/ReunionBannerBar'
 import type { ReunionNomination } from '../types/ReunionNomination'
+import type { NominationComment } from '../types/NominationComment'
+import { createComment, deleteComment, getNominationComments } from '../lib/nominationCommentService'
 import './ReunionDetailPage.css'
 import './NominationDetailPage.css'
 
@@ -22,8 +24,74 @@ function formatPrice(price: number): string {
   })
 }
 
+function formatCommentDate(createdAt: string): string {
+  return new Date(createdAt).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
 export function NominationDetailPage({ user, onSignOut, nomination, onBack }: NominationDetailPageProps) {
   const [activeTab, setActiveTab] = useState<Tab>('details')
+  const [comments, setComments] = useState<NominationComment[]>([])
+  const [commentsLoading, setCommentsLoading] = useState(true)
+  const [commentsError, setCommentsError] = useState<string | null>(null)
+  const [newComment, setNewComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  const nominationId = nomination.reunionNominationId
+
+  useEffect(() => {
+    if (!nominationId) {
+      setCommentsLoading(false)
+      return
+    }
+    let cancelled = false
+    getNominationComments(nominationId)
+      .then((loaded) => {
+        if (!cancelled) setComments(loaded)
+      })
+      .catch(() => {
+        if (!cancelled) setCommentsError('Could not load comments.')
+      })
+      .finally(() => {
+        if (!cancelled) setCommentsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [nominationId])
+
+  const handleSubmitComment = async (event: React.FormEvent) => {
+    event.preventDefault()
+    const trimmed = newComment.trim()
+    if (!trimmed || !nominationId || submitting) return
+
+    setSubmitting(true)
+    setCommentsError(null)
+    try {
+      const created = await createComment(user.id, nominationId, trimmed)
+      setComments((prev) => [...prev, created])
+      setNewComment('')
+    } catch {
+      setCommentsError('Could not post your comment. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleDeleteComment = async (commentId: string) => {
+    setCommentsError(null)
+    try {
+      await deleteComment(commentId)
+      setComments((prev) => prev.filter((c) => c.nominationCommentId !== commentId))
+    } catch {
+      setCommentsError('Could not delete the comment. Please try again.')
+    }
+  }
 
   const stats: { label: string; value: string }[] = []
   if (nomination.bedrooms != null) stats.push({ label: 'Bedrooms', value: String(nomination.bedrooms) })
@@ -97,7 +165,54 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack }: No
           {activeTab === 'comments' && (
             <div className="tab-panel">
               <h2>Comments</h2>
-              <p>Comments will go here</p>
+
+              {commentsError && <p className="comments-error">{commentsError}</p>}
+
+              {commentsLoading ? (
+                <p>Loading comments…</p>
+              ) : comments.length === 0 ? (
+                <p>No comments yet. Be the first to weigh in!</p>
+              ) : (
+                <ul className="comment-list">
+                  {comments.map((comment) => (
+                    <li key={comment.nominationCommentId} className="comment-item">
+                      <div className="comment-meta">
+                        <span className="comment-author">{comment.createdByName}</span>
+                        <span className="comment-date">{formatCommentDate(comment.createdAt)}</span>
+                        {comment.createdByUUID === user.id && (
+                          <button
+                            type="button"
+                            className="comment-delete"
+                            onClick={() => handleDeleteComment(comment.nominationCommentId)}
+                            aria-label="Delete comment"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                      <p className="comment-body">{comment.comment}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <form className="comment-form" onSubmit={handleSubmitComment}>
+                <textarea
+                  className="comment-input"
+                  value={newComment}
+                  onChange={(event) => setNewComment(event.target.value)}
+                  placeholder="Add a comment…"
+                  rows={3}
+                  disabled={submitting}
+                />
+                <button
+                  type="submit"
+                  className="comment-submit"
+                  disabled={submitting || !newComment.trim()}
+                >
+                  {submitting ? 'Posting…' : 'Post Comment'}
+                </button>
+              </form>
             </div>
           )}
         </div>
