@@ -18,7 +18,8 @@
   border-radius: 14px;
   padding: 32px;
   box-shadow: 0 16px 40px rgba(34, 51, 59, 0.15);
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   color: var(--water);
   display: flex;
   flex-direction: column;
@@ -27,9 +28,19 @@
 .reunion-detail-header {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 24px;
   position: relative;
+}
+
+/* Let long reunion/nomination names shrink and wrap between words —
+   breaking mid-word only when a single word is too wide to fit —
+   instead of overflowing under the header buttons */
+.reunion-detail-header h1 {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .back-button {
@@ -60,7 +71,17 @@
 .owner-actions {
   margin-left: auto;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 10px;
+}
+
+/* On phones the action buttons always get their own row below the
+   back button + title, instead of squeezing the title */
+@media (max-width: 640px) {
+  .owner-actions {
+    width: 100%;
+  }
 }
 
 .owner-edit-button {
@@ -141,6 +162,35 @@
   overflow-x: auto;
 }
 
+.responsive-tabs {
+  position: relative;
+}
+
+/* Invisible copy of the tab row used only to measure whether the
+   tabs fit; when they don't, a dropdown renders instead */
+.reunion-tabs-measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  visibility: hidden;
+  pointer-events: none;
+  overflow-x: hidden;
+}
+
+.tab-select {
+  display: block;
+  width: 100%;
+  font: 600 0.95rem 'Public Sans', system-ui, sans-serif;
+  color: var(--field);
+  background: #fff;
+  border: 1px solid #dde5e0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 24px;
+  cursor: pointer;
+}
+
 .tab-button {
   font: 600 0.9rem 'Public Sans', system-ui, sans-serif;
   padding: 12px 16px;
@@ -160,6 +210,26 @@
 .tab-button.active {
   color: var(--field);
   border-bottom-color: var(--field);
+}
+
+.nominations-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.nominations-toolbar h2 {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  margin: 0;
+  color: var(--ink);
+}
+
+.nominations-closed-note {
+  margin: 0 0 16px;
 }
 
 .tab-content {

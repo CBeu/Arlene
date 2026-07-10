@@ -4,6 +4,7 @@ import type { User } from '@supabase/supabase-js'
 import { ReunionBannerBar } from '../components/ReunionBannerBar'
 import { CreateReunionDialog, type CreateReunionFormData } from '../components/CreateReunionDialog'
 import { JoinReunionPopover } from '../components/JoinReunionPopover'
+import { ScrollHint } from '../components/ScrollHint'
 import { getUserReunions, createReunion, addUserToReunion } from '../lib/reunionService'
 import type { Reunion } from '../types/Reunion'
 import './ReunionsPage.css'
@@ -112,6 +113,7 @@ export function ReunionsPage({ user, onSignOut, onSelectReunion, joinError, onDi
             ))}
           </div>
         )}
+        <ScrollHint />
       </section>
 
       <CreateReunionDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} onSubmit={handleCreateReunion} />

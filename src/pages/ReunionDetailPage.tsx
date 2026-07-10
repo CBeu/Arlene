@@ -7,6 +7,8 @@ import { NominationDetailPage } from './NominationDetailPage'
 import { SubmitNominationForm } from '../components/SubmitNominationForm'
 import { ViewNominationsPanel } from '../components/ViewNominationsPanel'
 import { VotingPanel } from '../components/VotingPanel'
+import { ResponsiveTabs } from '../components/ResponsiveTabs'
+import { ScrollHint } from '../components/ScrollHint'
 import { createNomination, getReunionNominations, type CreateNominationInput } from '../lib/nominationService'
 import { getJoinLink, updateReunion, deleteReunion } from '../lib/reunionService'
 import type { CreateReunionFormData } from '../components/CreateReunionDialog'
@@ -15,7 +17,7 @@ import type { Reunion } from '../types/Reunion'
 import type { ReunionNomination } from '../types/ReunionNomination'
 import './ReunionDetailPage.css'
 
-type Tab = 'overview' | 'nominations' | 'submit' | 'voting'
+type Tab = 'overview' | 'nominations' | 'voting'
 
 type ReunionDetailPageProps = {
   user: User
@@ -44,6 +46,7 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack, onUpdated,
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [showSubmitForm, setShowSubmitForm] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
   const queryClient = useQueryClient()
 
@@ -125,6 +128,7 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack, onUpdated,
     try {
       await createNomination(user.id, reunion.reunionId!, formData)
       queryClient.invalidateQueries({ queryKey: ['nominations', reunion.reunionId] })
+      setShowSubmitForm(false)
       setSubmitSuccess(true)
       setTimeout(() => setSubmitSuccess(false), 3000)
     } catch (err) {
@@ -193,36 +197,15 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack, onUpdated,
 
         {ownerError && <p className="owner-error">{ownerError}</p>}
 
-        <div className="reunion-tabs">
-          <button
-            type="button"
-            className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            Reunion Overview
-          </button>
-          <button
-            type="button"
-            className={`tab-button ${activeTab === 'nominations' ? 'active' : ''}`}
-            onClick={() => setActiveTab('nominations')}
-          >
-            View Nominations
-          </button>
-          <button
-            type="button"
-            className={`tab-button ${activeTab === 'submit' ? 'active' : ''}`}
-            onClick={() => setActiveTab('submit')}
-          >
-            Submit Nomination
-          </button>
-          <button
-            type="button"
-            className={`tab-button ${activeTab === 'voting' ? 'active' : ''}`}
-            onClick={() => setActiveTab('voting')}
-          >
-            Voting
-          </button>
-        </div>
+        <ResponsiveTabs
+          tabs={[
+            { id: 'overview', label: 'Reunion Overview' },
+            { id: 'nominations', label: 'Nominations' },
+            { id: 'voting', label: 'Voting' },
+          ]}
+          activeTab={activeTab}
+          onSelect={(id) => setActiveTab(id as Tab)}
+        />
 
         <div className="tab-content">
           {activeTab === 'overview' && (
@@ -230,34 +213,51 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack, onUpdated,
               <ReunionOverviewPanel reunion={reunion} />
             </div>
           )}
-          {activeTab === 'nominations' && (
+          {activeTab === 'nominations' && showSubmitForm && (
             <div className="tab-panel">
+              <div className="nominations-toolbar">
+                <h2>Submit Nomination</h2>
+                <button
+                  type="button"
+                  className="ballot-secondary-button"
+                  onClick={() => setShowSubmitForm(false)}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+              </div>
+              <SubmitNominationForm
+                onSubmit={handleNominationSubmit}
+                isLoading={isSubmitting}
+                error={submitError}
+              />
+            </div>
+          )}
+          {activeTab === 'nominations' && !showSubmitForm && (
+            <div className="tab-panel">
+              {submitSuccess && <div className="success-message">Nomination submitted successfully!</div>}
+              {nominationsClosed && (
+                <p className="nominations-closed-note">
+                  Nominations closed on {reunion.nominationDeadline!.toLocaleDateString()}.
+                </p>
+              )}
               <ViewNominationsPanel
                 nominations={nominations}
                 isLoading={isLoadingNominations}
                 error={nominationsError}
                 onNominationClick={setSelectedNomination}
+                actions={
+                  !nominationsClosed && (
+                    <button
+                      type="button"
+                      className="ballot-primary-button"
+                      onClick={() => setShowSubmitForm(true)}
+                    >
+                      + Submit Nomination
+                    </button>
+                  )
+                }
               />
-            </div>
-          )}
-          {activeTab === 'submit' && (
-            <div className="tab-panel">
-              <h2>Submit Nomination</h2>
-              {nominationsClosed ? (
-                <p>
-                  Nominations closed on {reunion.nominationDeadline!.toLocaleDateString()}. New
-                  submissions are no longer accepted.
-                </p>
-              ) : (
-                <>
-                  {submitSuccess && <div className="success-message">Nomination submitted successfully!</div>}
-                  <SubmitNominationForm
-                    onSubmit={handleNominationSubmit}
-                    isLoading={isSubmitting}
-                    error={submitError}
-                  />
-                </>
-              )}
             </div>
           )}
           {activeTab === 'voting' && (
@@ -275,6 +275,7 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack, onUpdated,
               />
             </div>
           )}
+          <ScrollHint />
         </div>
       </section>
 

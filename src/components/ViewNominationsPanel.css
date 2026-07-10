@@ -6,6 +6,11 @@
   gap: 24px;
 }
 
+.nominations-actions {
+  display: flex;
+
+}
+
 .nominations-error {
   color: var(--pin);
   background: rgba(179, 59, 73, 0.1);

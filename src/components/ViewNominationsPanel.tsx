@@ -8,6 +8,8 @@ type ViewNominationsPanelProps = {
   isLoading?: boolean
   error?: string | null
   onNominationClick?: (nomination: ReunionNomination) => void
+  // e.g. the submit-nomination button, rendered below the map
+  actions?: React.ReactNode
 }
 
 export function ViewNominationsPanel({
@@ -15,6 +17,7 @@ export function ViewNominationsPanel({
   isLoading = false,
   error,
   onNominationClick,
+  actions,
 }: ViewNominationsPanelProps) {
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null)
 
@@ -27,7 +30,12 @@ export function ViewNominationsPanel({
   }
 
   if (nominations.length === 0) {
-    return <p className="empty-message">No nominations yet. Be the first to submit one!</p>
+    return (
+      <div>
+        <p className="empty-message">No nominations yet. Be the first to submit one!</p>
+        {actions && <div className="nominations-actions">{actions}</div>}
+      </div>
+    )
   }
 
   // Filter nominations by selected location if one is chosen
@@ -44,6 +52,8 @@ export function ViewNominationsPanel({
           setSelectedLocation(selectedLocation === location ? null : location)
         }
       />
+
+      {actions && <div className="nominations-actions">{actions}</div>}
 
       <div className="nominations-list-section">
         {selectedLocation && (

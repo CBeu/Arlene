@@ -8,6 +8,8 @@ import { createComment, deleteComment, getNominationComments } from '../lib/nomi
 import { deleteNomination, updateNomination, type CreateNominationInput } from '../lib/nominationService'
 import { SubmitNominationForm } from '../components/SubmitNominationForm'
 import { ExpandableDescription } from '../components/ExpandableDescription'
+import { ResponsiveTabs } from '../components/ResponsiveTabs'
+import { ScrollHint } from '../components/ScrollHint'
 import './ReunionDetailPage.css'
 import './NominationDetailPage.css'
 
@@ -170,22 +172,14 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDe
 
         {deleteError && <p className="comments-error">{deleteError}</p>}
 
-        <div className="reunion-tabs">
-          <button
-            type="button"
-            className={`tab-button ${activeTab === 'details' ? 'active' : ''}`}
-            onClick={() => setActiveTab('details')}
-          >
-            Nomination Details
-          </button>
-          <button
-            type="button"
-            className={`tab-button ${activeTab === 'comments' ? 'active' : ''}`}
-            onClick={() => setActiveTab('comments')}
-          >
-            Nomination Comments
-          </button>
-        </div>
+        <ResponsiveTabs
+          tabs={[
+            { id: 'details', label: 'Nomination Details' },
+            { id: 'comments', label: 'Nomination Comments' },
+          ]}
+          activeTab={activeTab}
+          onSelect={(id) => setActiveTab(id as Tab)}
+        />
 
         <div className="tab-content">
           {activeTab === 'details' && editing && (
@@ -300,6 +294,7 @@ export function NominationDetailPage({ user, onSignOut, nomination, onBack, onDe
               </form>
             </div>
           )}
+          <ScrollHint />
         </div>
       </section>
     </main>

@@ -2,7 +2,6 @@
 @import url('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css');
 
 .nominations-map-container {
-  margin-bottom: 24px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -52,6 +51,15 @@
   border-radius: 12px;
   border: 1px solid #e5e5e5;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Keep the map short enough on phones that the content below it
+   peeks above the fold */
+@media (max-width: 640px) {
+  .map-container {
+    height: 40vh;
+    min-height: 220px;
+  }
 }
 
 @media (max-width: 600px) {
