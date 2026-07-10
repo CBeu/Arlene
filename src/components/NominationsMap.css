@@ -26,6 +26,15 @@
   margin: 0;
 }
 
+.map-pin {
+  background: transparent;
+  border: none;
+}
+
+.map-pin svg {
+  filter: drop-shadow(0 2px 3px rgba(34, 51, 59, 0.4));
+}
+
 .map-empty {
   display: flex;
   align-items: center;

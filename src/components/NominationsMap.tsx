@@ -5,12 +5,21 @@ import type { ReunionNomination } from '../types/ReunionNomination'
 import { geocodeCity, type Coordinates } from '../lib/geocodingService'
 import './NominationsMap.css'
 
-// Fix default marker icons
-delete (L.Icon.Default.prototype as any)._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+// Custom SVG pin so the marker color follows the app palette; Leaflet's
+// default markers are PNG images and can't be tinted with CSS variables
+const pinIcon = L.divIcon({
+  className: 'map-pin',
+  html: `
+    <svg viewBox="0 0 30 42" width="30" height="42" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M15 0C6.7 0 0 6.7 0 15c0 10.4 13 25.4 14.1 26.6a1.2 1.2 0 0 0 1.8 0C17 40.4 30 25.4 30 15 30 6.7 23.3 0 15 0z"
+        fill="var(--field)"
+      />
+      <circle cx="15" cy="14.5" r="5.5" fill="var(--paper)" />
+    </svg>`,
+  iconSize: [30, 42],
+  iconAnchor: [15, 42],
+  popupAnchor: [0, -36],
 })
 
 const US_CENTER: [number, number] = [39.8283, -98.5795]
@@ -125,6 +134,7 @@ export function NominationsMap({ nominations, selectedLocation, onLocationSelect
             <Marker
               key={locationKey}
               position={[cluster.coords.lat, cluster.coords.lng]}
+              icon={pinIcon}
               eventHandlers={{
                 click: () => onLocationSelect?.(locationKey),
               }}
