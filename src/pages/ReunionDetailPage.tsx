@@ -6,6 +6,7 @@ import { ReunionOverviewPanel } from '../components/ReunionOverviewPanel'
 import { NominationDetailPage } from './NominationDetailPage'
 import { SubmitNominationForm } from '../components/SubmitNominationForm'
 import { ViewNominationsPanel } from '../components/ViewNominationsPanel'
+import { VotingPanel } from '../components/VotingPanel'
 import { createNomination, getReunionNominations, type CreateNominationInput } from '../lib/nominationService'
 import { getJoinLink, updateReunion, deleteReunion } from '../lib/reunionService'
 import type { CreateReunionFormData } from '../components/CreateReunionDialog'
@@ -53,8 +54,9 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack, onUpdated,
   } = useQuery({
     queryKey: ['nominations', reunion.reunionId],
     queryFn: () => getReunionNominations(reunion.reunionId!),
-    // Only fetch once the tab is first opened; afterwards it's cached
-    enabled: activeTab === 'nominations',
+    // Only fetch once a tab needing nominations is first opened;
+    // afterwards it's cached
+    enabled: activeTab === 'nominations' || activeTab === 'voting',
   })
   const nominationsError = nominationsFetchError
     ? nominationsFetchError instanceof Error
@@ -260,15 +262,17 @@ export function ReunionDetailPage({ user, onSignOut, reunion, onBack, onUpdated,
           )}
           {activeTab === 'voting' && (
             <div className="tab-panel">
-              <h2>Voting</h2>
-              {!nominationsClosed && reunion.nominationDeadline ? (
-                <p>
-                  Voting will start on {reunion.nominationDeadline.toLocaleDateString()}, once
-                  nominations close.
-                </p>
-              ) : (
-                <p>Voting content will go here</p>
-              )}
+              <VotingPanel
+                user={user}
+                reunion={reunion}
+                nominations={nominations}
+                isLoadingNominations={isLoadingNominations}
+                nominationsCloseAt={
+                  !nominationsClosed && reunion.nominationDeadline
+                    ? reunion.nominationDeadline
+                    : undefined
+                }
+              />
             </div>
           )}
         </div>

@@ -1,0 +1,232 @@
+.voting-panel {
+  max-width: 640px;
+}
+
+.ballot-hint {
+  color: var(--trail);
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.ballot-locked-notice {
+  color: var(--water);
+  background: rgba(69, 105, 144, 0.08);
+  border: 1px solid var(--water);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.ballot-error {
+  color: #b3261e;
+  background: rgba(179, 38, 30, 0.08);
+  border: 1px solid #b3261e;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.ballot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding-left: 28px;
+}
+
+.ballot-item {
+  background: #fff;
+  border: 1px solid #dde5e0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ballot-item-draggable {
+  cursor: grab;
+  user-select: none;
+}
+
+.ballot-item-draggable.dragging {
+  opacity: 0.5;
+}
+
+.ballot-drag-handle {
+  color: var(--trail);
+  font-size: 1rem;
+}
+
+.ballot-item-name {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.ballot-item-location {
+  font-size: 0.85rem;
+  color: var(--trail);
+}
+
+.ballot-item-arrows {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.ballot-arrow {
+  font: 600 0.9rem 'Public Sans', system-ui, sans-serif;
+  background: transparent;
+  color: var(--field);
+  border: 1px solid #dde5e0;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.ballot-arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.ballot-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ballot-primary-button {
+  font: 600 0.9rem 'Public Sans', system-ui, sans-serif;
+  padding: 10px 16px;
+  background: var(--field);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.ballot-primary-button:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.ballot-primary-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.ballot-secondary-button {
+  font: 600 0.9rem 'Public Sans', system-ui, sans-serif;
+  padding: 10px 16px;
+  background: transparent;
+  color: var(--field);
+  border: 1px solid #dde5e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.ballot-secondary-button:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+.ballot-secondary-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.ballot-method-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ballot-method-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #dde5e0;
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  font: 400 0.9rem 'Public Sans', system-ui, sans-serif;
+  color: var(--trail);
+  transition: border-color 0.15s ease;
+}
+
+.ballot-method-card:hover {
+  border-color: var(--water);
+}
+
+.ballot-method-card strong {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.bob-intro {
+  color: var(--trail);
+  margin: 0 0 4px;
+}
+
+.bob-progress {
+  font-size: 0.85rem;
+  color: var(--trail);
+  margin: 0 0 20px;
+}
+
+.bob-question {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+
+.bob-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.bob-option {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  text-align: center;
+  background: #fff;
+  border: 2px solid #dde5e0;
+  border-radius: 12px;
+  padding: 24px 16px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+
+.bob-option:hover {
+  border-color: var(--water);
+  transform: translateY(-1px);
+}
+
+.bob-option-name {
+  font: 600 1.05rem 'Public Sans', system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.bob-option-location {
+  font-size: 0.85rem;
+  color: var(--trail);
+}
+
+.bob-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}

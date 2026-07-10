@@ -13,6 +13,7 @@ by the ones before it.
 | 2 | [reunionSchema.sql](reunionSchema.sql) | `reunions` and `profile_reunions` tables, `is_reunion_member()` function | `profiles` |
 | 3 | [nominationSchema.sql](nominationSchema.sql) | `reunion_nominations` table | `reunions`, `profiles`, `profile_reunions`, `is_reunion_member()` |
 | 4 | [nominationCommentSchema.sql](nominationCommentSchema.sql) | `nomination_comments` table | `reunion_nominations`, `profiles`, `is_reunion_member()` |
+| 5 | [voteSchema.sql](voteSchema.sql) | `reunion_votes` table (one ranked ballot per member per reunion) | `reunions`, `profiles`, `reunion_nominations`, `is_reunion_member()` |
 
 ## Migrations
 
