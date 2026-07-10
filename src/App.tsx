@@ -5,6 +5,7 @@ import { LoginPage } from './pages/LoginPage'
 import { ReunionsPage } from './pages/ReunionsPage'
 import { ReunionDetailPage } from './pages/ReunionDetailPage'
 import { joinReunion } from './lib/reunionService'
+import { syncProfileNameFromAuth } from './lib/profileService'
 import type { Reunion } from './types/Reunion'
 
 // Survives the OAuth redirect, which drops query params
@@ -26,6 +27,16 @@ export default function App() {
     const joinId = readJoinParam()
     if (joinId) localStorage.setItem(PENDING_JOIN_KEY, joinId)
   }, [])
+
+  // Capture the provider-supplied name onto the profile. Apple only sends
+  // the name on the first-ever authorization, so this must run right after
+  // sign-in; it's a no-op when the profile already has a real name.
+  useEffect(() => {
+    if (!user) return
+    syncProfileNameFromAuth(user).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['profile', user.id] })
+    })
+  }, [user, queryClient])
 
   // Once signed in, complete any pending join and open that reunion
   useEffect(() => {
