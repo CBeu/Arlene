@@ -347,6 +347,13 @@ export function VotingPanel({
         <div>
           <p className="ballot-hint">How would you like to build your ballot?</p>
           <div className="ballot-method-options">
+            <button type="button" className="ballot-method-card" onClick={() => setMode('bob')}>
+              <strong>Use B.O.B</strong>
+              <span>
+                B.O.B (Ballot Organizing Bob) asks simple this-or-that questions and builds the
+                ranking for you
+              </span>
+            </button>
             <button
               type="button"
               className="ballot-method-card"
@@ -357,13 +364,6 @@ export function VotingPanel({
             >
               <strong>Order manually</strong>
               <span>Drag the full list into your preferred order</span>
-            </button>
-            <button type="button" className="ballot-method-card" onClick={() => setMode('bob')}>
-              <strong>Use B.O.B</strong>
-              <span>
-                B.O.B (Ballot Organizing Bob) asks simple this-or-that questions and builds the
-                ranking for you
-              </span>
             </button>
           </div>
           <button type="button" className="ballot-secondary-button" onClick={() => setMode('view')}>
