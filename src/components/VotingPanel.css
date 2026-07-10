@@ -1,7 +1,3 @@
-.voting-panel {
-  max-width: 640px;
-}
-
 .ballot-hint {
   color: var(--trail);
   margin: 0 0 16px;
