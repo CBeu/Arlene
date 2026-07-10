@@ -26,6 +26,7 @@ type BobRankerProps = {
   storageKey: string
   onComplete: (rankedIds: string[]) => void
   onCancel: () => void
+  onShowInfo: (nomination: ReunionNomination) => void
 }
 
 function shuffle<T>(items: T[]): T[] {
@@ -75,7 +76,7 @@ function loadState(storageKey: string, ids: string[]): BobState {
   return freshState(ids)
 }
 
-export function BobRanker({ nominations, storageKey, onComplete, onCancel }: BobRankerProps) {
+export function BobRanker({ nominations, storageKey, onComplete, onCancel, onShowInfo }: BobRankerProps) {
   const ids = useMemo(() => nominations.map((n) => n.reunionNominationId!), [nominations])
   const byId = useMemo(
     () => new Map(nominations.map((n) => [n.reunionNominationId!, n])),
@@ -176,17 +177,29 @@ export function BobRanker({ nominations, storageKey, onComplete, onCancel }: Bob
       <h3 className="bob-question">Which do you prefer?</h3>
       <div className="bob-options">
         {options.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            className="bob-option"
-            onClick={() => answer(option.prefersCandidate)}
-          >
-            <span className="bob-option-name">{option.nomination?.name ?? 'Unknown'}</span>
-            <span className="bob-option-location">
-              {option.nomination ? `${option.nomination.city}, ${option.nomination.state}` : ''}
-            </span>
-          </button>
+          <div key={option.id} className="bob-option-wrap">
+            <button
+              type="button"
+              className="bob-option"
+              onClick={() => answer(option.prefersCandidate)}
+            >
+              <span className="bob-option-name">{option.nomination?.name ?? 'Unknown'}</span>
+              <span className="bob-option-location">
+                {option.nomination ? `${option.nomination.city}, ${option.nomination.state}` : ''}
+              </span>
+            </button>
+            {option.nomination && (
+              <button
+                type="button"
+                className="ballot-info-button bob-option-info"
+                onClick={() => onShowInfo(option.nomination!)}
+                aria-label={`View details for ${option.nomination.name}`}
+                title="View details"
+              >
+                i
+              </button>
+            )}
+          </div>
         ))}
       </div>
 

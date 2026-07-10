@@ -226,3 +226,141 @@
   gap: 10px;
   flex-wrap: wrap;
 }
+
+.bob-option-wrap {
+  position: relative;
+}
+
+.bob-option-wrap .bob-option {
+  width: 100%;
+  height: 100%;
+}
+
+.bob-option-info {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.ballot-info-button {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: italic 700 0.8rem Georgia, serif;
+  color: var(--water);
+  background: transparent;
+  border: 1px solid var(--water);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ballot-info-button:hover {
+  background: var(--water);
+  color: #fff;
+}
+
+.ballot-info-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(34, 51, 59, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 1000;
+}
+
+.ballot-info-dialog {
+  background: var(--paper);
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: auto;
+  box-shadow: 0 16px 40px rgba(34, 51, 59, 0.25);
+}
+
+.ballot-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.ballot-info-header h3 {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--ink);
+  margin: 0;
+}
+
+.ballot-info-close {
+  font-size: 1rem;
+  background: transparent;
+  border: none;
+  color: var(--trail);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.ballot-info-location {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--water);
+  margin: 0 0 12px;
+}
+
+.ballot-info-description {
+  color: var(--trail);
+  line-height: 1.6;
+  margin: 0 0 16px;
+  white-space: pre-wrap;
+}
+
+.ballot-info-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+.ballot-info-stat {
+  background: #fff;
+  border: 1px solid #dde5e0;
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.ballot-info-stat dt {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--trail);
+  margin: 0 0 2px;
+}
+
+.ballot-info-stat dd {
+  font-family: 'Archivo', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.ballot-info-link {
+  display: inline-block;
+  font: 600 0.9rem 'Public Sans', system-ui, sans-serif;
+  padding: 10px 16px;
+  background: var(--field);
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+}

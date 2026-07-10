@@ -5,6 +5,7 @@ import type { Reunion } from '../types/Reunion'
 import type { ReunionNomination } from '../types/ReunionNomination'
 import { getMyVote, saveVote } from '../lib/voteService'
 import { BobRanker } from './BobRanker'
+import { ExpandableDescription } from './ExpandableDescription'
 import './VotingPanel.css'
 
 type VotingPanelProps = {
@@ -19,12 +20,94 @@ type VotingPanelProps = {
 
 type Mode = 'view' | 'choose' | 'manual' | 'bob' | 'confirm'
 
+function InfoButton({
+  nomination,
+  onShowInfo,
+}: {
+  nomination: ReunionNomination
+  onShowInfo: (nomination: ReunionNomination) => void
+}) {
+  return (
+    <button
+      type="button"
+      className="ballot-info-button"
+      onClick={(e) => {
+        e.stopPropagation()
+        onShowInfo(nomination)
+      }}
+      aria-label={`View details for ${nomination.name}`}
+      title="View details"
+    >
+      i
+    </button>
+  )
+}
+
+function NominationInfoDialog({
+  nomination,
+  onClose,
+}: {
+  nomination: ReunionNomination
+  onClose: () => void
+}) {
+  const stats: { label: string; value: string }[] = []
+  if (nomination.bedrooms != null) stats.push({ label: 'Bedrooms', value: String(nomination.bedrooms) })
+  if (nomination.bathrooms != null) stats.push({ label: 'Bathrooms', value: String(nomination.bathrooms) })
+  if (nomination.capacity != null) stats.push({ label: 'Capacity', value: String(nomination.capacity) })
+  if (nomination.units != null) stats.push({ label: 'Units', value: String(nomination.units) })
+  if (nomination.price != null)
+    stats.push({
+      label: 'Price',
+      value: nomination.price.toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0,
+      }),
+    })
+
+  return (
+    <div className="ballot-info-overlay" onClick={onClose}>
+      <div className="ballot-info-dialog" onClick={(e) => e.stopPropagation()}>
+        <div className="ballot-info-header">
+          <h3>{nomination.name}</h3>
+          <button type="button" className="ballot-info-close" onClick={onClose} aria-label="Close">
+            ✕
+          </button>
+        </div>
+        <p className="ballot-info-location">
+          {nomination.city}, {nomination.state}
+        </p>
+        {nomination.description && (
+          <ExpandableDescription text={nomination.description} className="ballot-info-description" />
+        )}
+        {stats.length > 0 && (
+          <dl className="ballot-info-stats">
+            {stats.map((stat) => (
+              <div key={stat.label} className="ballot-info-stat">
+                <dt>{stat.label}</dt>
+                <dd>{stat.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {nomination.url && (
+          <a href={nomination.url} target="_blank" rel="noopener noreferrer" className="ballot-info-link">
+            View listing ↗
+          </a>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function BallotList({
   order,
   nominationsById,
+  onShowInfo,
 }: {
   order: string[]
   nominationsById: Map<string, ReunionNomination>
+  onShowInfo: (nomination: ReunionNomination) => void
 }) {
   return (
     <ol className="ballot-list">
@@ -36,6 +119,9 @@ function BallotList({
             <span className="ballot-item-name">{nomination.name}</span>
             <span className="ballot-item-location">
               {nomination.city}, {nomination.state}
+            </span>
+            <span className="ballot-item-arrows">
+              <InfoButton nomination={nomination} onShowInfo={onShowInfo} />
             </span>
           </li>
         )
@@ -51,6 +137,7 @@ function BallotEditor({
   onCancel,
   submitting,
   submitLocked = false,
+  onShowInfo,
 }: {
   initialOrder: string[]
   nominationsById: Map<string, ReunionNomination>
@@ -58,6 +145,7 @@ function BallotEditor({
   onCancel: () => void
   submitting: boolean
   submitLocked?: boolean
+  onShowInfo: (nomination: ReunionNomination) => void
 }) {
   const [order, setOrder] = useState(initialOrder)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
@@ -103,6 +191,7 @@ function BallotEditor({
                 {nomination.city}, {nomination.state}
               </span>
               <span className="ballot-item-arrows">
+                <InfoButton nomination={nomination} onShowInfo={onShowInfo} />
                 <button
                   type="button"
                   className="ballot-arrow"
@@ -153,6 +242,7 @@ export function VotingPanel({
   const [mode, setMode] = useState<Mode>('view')
   const [pendingOrder, setPendingOrder] = useState<string[]>([])
   const [manualStart, setManualStart] = useState<string[] | null>(null)
+  const [infoNomination, setInfoNomination] = useState<ReunionNomination | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const queryClient = useQueryClient()
@@ -220,7 +310,7 @@ export function VotingPanel({
       {mode === 'view' && votedOrder && (
         <div>
           <p className="ballot-hint">Your ballot, from most to least preferred:</p>
-          <BallotList order={votedOrder} nominationsById={nominationsById} />
+          <BallotList order={votedOrder} nominationsById={nominationsById} onShowInfo={setInfoNomination} />
           {votingClosed ? (
             <p className="ballot-hint">
               Voting closed on {reunion.votingDeadline!.toLocaleDateString()}, so your ballot
@@ -290,6 +380,7 @@ export function VotingPanel({
           onCancel={() => setMode('choose')}
           submitting={submitting}
           submitLocked={submitLocked}
+          onShowInfo={setInfoNomination}
         />
       )}
 
@@ -302,6 +393,7 @@ export function VotingPanel({
             setMode('confirm')
           }}
           onCancel={() => setMode('choose')}
+          onShowInfo={setInfoNomination}
         />
       )}
 
@@ -310,7 +402,7 @@ export function VotingPanel({
           <p className="ballot-hint">
             B.O.B finished! Here's your ranking — confirm it or fine-tune it before submitting.
           </p>
-          <BallotList order={pendingOrder} nominationsById={nominationsById} />
+          <BallotList order={pendingOrder} nominationsById={nominationsById} onShowInfo={setInfoNomination} />
           <div className="ballot-actions">
             <button
               type="button"
@@ -345,6 +437,10 @@ export function VotingPanel({
             </button>
           </div>
         </div>
+      )}
+
+      {infoNomination && (
+        <NominationInfoDialog nomination={infoNomination} onClose={() => setInfoNomination(null)} />
       )}
     </div>
   )
